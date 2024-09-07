@@ -173,7 +173,18 @@ catkin_install_python(PROGRAMS
   scripts/goto
   scripts/takeoff
   scripts/land
-  scripts/payload_ros
+  scripts/payload_ros_a
+  scripts/payload_ros_b
+  scripts/roi_v2
+  scripts/tf2_broadcaster_frames.py
+  scripts/tf2_broadcaster_target.py
+  scripts/wp_sw
+  scripts/tf2_listener
+  scripts/demo_roi
+  scripts/rviz_vis
+  scripts/tf2_combined
+  scripts/tf2_combined_v3
+  scripts/pub_fake
   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )
 
