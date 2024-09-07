@@ -57,6 +57,7 @@ def camera_callback(data):
 	detection.pose.pose.position.x = target_tf.transform.translation.x
 	detection.pose.pose.position.y = target_tf.transform.translation.y
 	detection.pose.pose.position.z = target_tf.transform.translation.z
+	
 	rospy.loginfo("[x: %0.2f; y: %0.2f; z: %0.2f]" % (target_tf.transform.translation.x,
                             target_tf.transform.translation.y,
                             target_tf.transform.translation.z))
