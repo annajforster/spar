@@ -8,6 +8,7 @@
 	<remap from="spar/pose" to="uavasr/pose"/>
 	<remap from="spar/setpoint" to="uavasr/setpoint_raw/local"/>
 	<include file="$(find spar_node)/launch/spar.launch"/>
+	<arg name="surveyAltitude2" default="3" />
 
 	<!-- Emulator Node -->
 	<node pkg="uavasr_emulator" type="uavasr_emulator_node" name="uavasr" clear_params="true" output="screen">
