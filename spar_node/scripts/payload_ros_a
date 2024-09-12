@@ -15,37 +15,6 @@ servo = AngularServo(servo_pin, min_angle=0, max_angle=180, min_pulse_width=0.00
 #after the unit testing, the duty cycle of the DF9GMS is between 2 and 12
 # therefor, 2 is 0 degrees. 12 is 180 degrees of the duty cycle
 #
-
-
-def start_position():
-    rospy.loginfo("Awaiting message...")
-    servo.angle = 90
-    time.sleep(2)
-#
-#to drop the left payload, we want the motor to rotate to the right (180 deg or dutycycle 12)
-def drop_left():
-    servo.angle = 20
-    time.sleep(2)
-    servo.angle = 90
-    time.sleep(2)
-#
-#to drop the left payload, we want the motor to rotate to the right (0 deg or dutycycle 2)
-def drop_right():
-    servo.angle = 160
-    time.sleep(2)
-    servo.angle = 90
-    time.sleep(2)
-#
-#Test Code 
-def test_code():
-    start_position()
-    print ("wait 2 seconds")
-    time.sleep(2)
-    print ("drop left")
-    drop_left()
-    print ("drop right")
-    drop_right()
-#
 #
 servo.angle = 90
 #
@@ -62,16 +31,16 @@ def callback(msg):
        # rospy.sleep(rospy.Duration(3))
 #
     if msg.data == 1:
-        servo.angle = 45
-        rospy.sleep(rospy.Duration(3))
-        servo.angle = 90
-        rospy.loginfo("Epi-Pen was deployed")
-#    
-    elif msg.data == 2:
         servo.angle = 135
         rospy.sleep(rospy.Duration(3))
         servo.angle = 90
         rospy.loginfo("Tracker was deployed")
+#    
+    elif msg.data == 2:
+        servo.angle = 45
+        rospy.sleep(rospy.Duration(3))
+        servo.angle = 90
+        rospy.loginfo("Epi-Pen was deployed")
     else:
         servo.angle = 90
 #
