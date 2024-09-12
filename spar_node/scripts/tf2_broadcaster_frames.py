@@ -11,7 +11,11 @@ from geometry_msgs.msg import PoseStamped, TransformStamped
 tfbr = None
 tfsbr = None
 
+# Emulator
 uav_name = "emulated_uav"
+
+# Optitrack 
+#uav_name = "mavros"
 camera_name = "camera"
 
 def send_tf_camera():

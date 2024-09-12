@@ -136,7 +136,7 @@ class Guidance():
 			# Callback to save "current location" such that we can perform and return
 			# from a diversion to the correct location
 			# XXX: These topics could be hard-coded to avoid using a launch file
-			self.sub_pose = rospy.Subscriber("~pose", PoseStamped, self.callback_pose)
+			self.sub_pose = rospy.Subscriber("/mavros/pose", PoseStamped, self.callback_pose)
 			# Subscriber to catch "ROI" diversion commands
 			self.sub_roi = rospy.Subscriber("/target_detection/roi", ObjectHypothesisWithPose, self.callback_detection)
 			# Subscriber to battery topic for future safety landing automation 
@@ -189,7 +189,7 @@ class Guidance():
 
 		# Check if the waypoint is inside the net for X, Y and Z:
 		if abs(wp[0]) > self.safeRangeX or abs(wp[1]) > self.safeRangeY or wp[2] > self.safeRangeZ:
-			rospy.logwarn("wp values x: {} - y: {} - z {}".format(wp[0], wp[1], wp[2]))
+			rospy.logwarn("wp values x: {} y: {} z {}".format(wp[0], wp[1], wp[2]))
 			rospy.logwarn("Waypoint has an invalid size for O134 (must be -{}<X<{}/-{}<Y<{}/Z<{}/Yaw)".format(self.safeRangeX,self.safeRangeX,self.safeRangeY,self.safeRangeY,self.safeRangeZ))
 			return False
 
@@ -570,29 +570,30 @@ class Guidance():
 def main(args):
 	# Initialise ROS
 	rospy.init_node('guidance')
-	surveyAltitude = rospy.get_param("~surveyAlt", 3)
+	#surveyAltitude = rospy.get_param("~surveyAlt", 1.5)
+	surveyAltitude = 2
 	# List of waypoints
 	#surveyAltitude = 1.8
 	# [X, Y, Z, Yaw]
 
 	# For 1.5 to 2.9m
 	wpsR1 = [[ 0.0, 0.0, surveyAltitude, 0.0],	  # 0 takeoff
-			 [-4.0, 2.5, surveyAltitude, 0.0],    # 1  r1
-             [-4.0,-2.5, surveyAltitude, 0.0],    # 2  r1
-             [-2.5,-2.5, surveyAltitude, 0.0],    # 3  r2
-             [-2.5, 2.5, surveyAltitude, 0.0],    # 4  r2
-             [-1.5, 2.5, surveyAltitude, 0.0],    # 5  r3
-             [-1.5,-2.5, surveyAltitude, 0.0],    # 6  r3
-             [-0.5,-2.5, surveyAltitude, 0.0],    # 7  r4
-             [-0.5, 2.5, surveyAltitude, 0.0],    # 8  r4
-             [ 0.5, 2.5, surveyAltitude, 0.0],    # 9  r5
-             [ 0.5,-2.5, surveyAltitude, 0.0],    # 10 r5
-             [ 1.5,-2.5, surveyAltitude, 0.0],    # 11 r6
-             [ 1.5, 2.5, surveyAltitude, 0.0],    # 12 r6
-             [ 2.5, 2.5, surveyAltitude, 0.0],    # 13 r7
-             [ 2.5,-2.5, surveyAltitude, 0.0],    # 14 r7
-             [ 4.0,-2.5, surveyAltitude, 0.0],    # 15 r8
-             [ 4.0, 2.5, surveyAltitude, 0.0]]    # 16 r8
+			 [-3.5, 2.0, surveyAltitude, 0.0],    # 1  r1
+             [-3.5,-2.0, surveyAltitude, 0.0],    # 2  r1
+             [-2.5,-2.0, surveyAltitude, 0.0],    # 3  r2
+             [-2.5, 2.0, surveyAltitude, 0.0],    # 4  r2
+             [-1.5, 2.0, surveyAltitude, 0.0],    # 5  r3
+             [-1.5,-2.0, surveyAltitude, 0.0],    # 6  r3
+             [-0.5,-2.0, surveyAltitude, 0.0],    # 7  r4
+             [-0.5, 2.0, surveyAltitude, 0.0],    # 8  r4
+             [ 0.5, 2.0, surveyAltitude, 0.0],    # 9  r5
+             [ 0.5,-2.0, surveyAltitude, 0.0],    # 10 r5
+             [ 1.5,-2.0, surveyAltitude, 0.0],    # 11 r6
+             [ 1.5, 2.0, surveyAltitude, 0.0],    # 12 r6
+             [ 2.5, 2.0, surveyAltitude, 0.0],    # 13 r7
+             [ 2.5,-2.0, surveyAltitude, 0.0],    # 14 r7
+             [ 3.5,-2.0, surveyAltitude, 0.0],    # 15 r8
+             [ 3.5, 2.0, surveyAltitude, 0.0]]    # 16 r8
 
 	# For 3 to 4m 
 	wpsR2 = [[ 0.0, 0.0, surveyAltitude, 0.0],	  # 0 takeoff
