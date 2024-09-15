@@ -4,19 +4,21 @@ from gpiozero import AngularServo
 import time
 import rospy
 from std_msgs.msg import UInt8
-#
+import subprocess
 #
 servo_pin = 12 # Change this to pin of choice (within reason)
 #
 #Set Pin X as am ouput and set servo one as pin X as PWM
 servo = AngularServo(servo_pin, min_angle=0, max_angle=180, min_pulse_width=0.00005, max_pulse_width=0.0025) #GPIO 12
 #
-#
-#after the unit testing, the duty cycle of the DF9GMS is between 2 and 12
+# after the unit testing, the duty cycle of the DF9GMS is between 2 and 12
 # therefor, 2 is 0 degrees. 12 is 180 degrees of the duty cycle
 #
 #
-servo.angle = 90
+# Function to vocalize text using espeak
+def speak(text):
+    subprocess.run(['espeak', text])
+#
 #
 def callback(msg):
     rospy.loginfo("Message received")
@@ -24,38 +26,35 @@ def callback(msg):
     #Original position: 0b00000000 (0)
     #Drop Epi pen:      0b00000001 (1)
     #Drop Tracker:      0b00000010 (2)
-    #Drop Cube:         0b00000011 (3)
-    #Drop Rectangle:    0b00000100 (4)
-    # if msg.data == 0:
-        #start_position()
-       # rospy.sleep(rospy.Duration(3))
 #
     if msg.data == 1:
         servo.angle = 135
-        rospy.sleep(rospy.Duration(3))
-        servo.angle = 90
+        servo.angle = None
         rospy.loginfo("Tracker was deployed")
+        speak("Tracker was deployed")
 #    
     elif msg.data == 2:
         servo.angle = 45
-        rospy.sleep(rospy.Duration(3))
-        servo.angle = 90
+        servo.angle = None
         rospy.loginfo("Epi-Pen was deployed")
+        speak("Epi-Pen was deployed")
+#
     else:
-        servo.angle = 90
+        rospy.loginfo("Unidentified message")
+        speak("Unidentified message")
+#
 #
 def main():
     # Initialize ROS node
     rospy.init_node('servo_controller_node')
     rospy.loginfo("Payload Setup")
     #
-    # Subscribe to payloadcommands topic
-    
     rospy.Subscriber('payloadcommands', UInt8, callback)
     rospy.loginfo("Message acted on")
     #
     # Keep the node alive
     rospy.spin()
+#
 #
 if __name__ == '__main__':
     main()
