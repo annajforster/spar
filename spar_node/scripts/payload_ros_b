@@ -29,12 +29,14 @@ def callback(msg):
 #
     if msg.data == 1:
         servo.angle = 45
+        rospy.sleep(rospy.Duration(3))
         servo.angle = None
         rospy.loginfo("Cube was deployed")
         speak("Cube was deployed")
 #    
     elif msg.data == 2:
         servo.angle = 135
+        rospy.sleep(rospy.Duration(3))
         servo.angle = None
         rospy.loginfo("Rectangle was deployed")
         speak("Rectangle was deployed")
