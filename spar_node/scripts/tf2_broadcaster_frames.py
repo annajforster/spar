@@ -12,7 +12,8 @@ tfbr = None
 tfsbr = None
 
 # Emulator
-uav_name = "emulated_uav"
+# uav_name = "emulated_uav"
+uav_name = "uavteam2"
 
 # Optitrack 
 #uav_name = "mavros"
