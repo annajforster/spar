@@ -181,7 +181,6 @@ catkin_install_python(PROGRAMS
   scripts/wp_sw
   scripts/tf2_listener
   scripts/demo_roi
-  scripts/rviz_vis
   scripts/tf2_combined
   scripts/tf2_combined_v3
   scripts/pub_fake
