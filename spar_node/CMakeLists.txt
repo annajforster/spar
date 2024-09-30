@@ -184,6 +184,7 @@ catkin_install_python(PROGRAMS
   scripts/tf2_combined
   scripts/tf2_frames
   scripts/wp_roi_landing
+  scripts/tf2_combined_espeak
   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )
 
