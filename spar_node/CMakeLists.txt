@@ -169,22 +169,21 @@ target_link_libraries(${PROJECT_NAME}
 ## Mark executable scripts (Python etc.) for installation
 ## in contrast to setup.py, you can choose the destination
 catkin_install_python(PROGRAMS
+  scripts/demo_breadcrumb
+  scripts/demo_roi
+  scripts/demo_roi_only
   scripts/demo_wp
+  scripts/demo_wp_roi
   scripts/goto
-  scripts/takeoff
   scripts/land
   scripts/payload_ros_a
   scripts/payload_ros_b
-  scripts/roi_v2
-  scripts/tf2_broadcaster_frames.py
-  scripts/tf2_broadcaster_target.py
-  scripts/wp_sw
-  scripts/tf2_listener
-  scripts/demo_roi
-  scripts/rviz_vis
-  scripts/tf2_combined
-  scripts/tf2_combined_v3
   scripts/pub_fake
+  scripts/takeoff
+  scripts/takeoff_and_land
+  scripts/tf2_combined
+  scripts/tf2_frames
+  scripts/wp_roi_landing
   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )
 
