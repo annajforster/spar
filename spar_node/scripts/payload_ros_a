@@ -63,7 +63,7 @@ def callback(msg):
         rospy.sleep(rospy.Duration(3))
         servo.angle = None
         rospy.loginfo("payload ready")
-        speak("payload ready")
+        speaker.data = "[Payload Ready]"
 #
     else:
         rospy.loginfo("Unidentified message")
