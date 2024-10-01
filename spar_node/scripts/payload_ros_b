@@ -53,7 +53,13 @@ def callback(msg):
         servo.angle = None
         rospy.loginfo("Rectangle was deployed")
         speak("Rectangle was deployed")
-        
+#
+    elif msg.data == 3:
+        servo.angle = 90
+        rospy.sleep(rospy.Duration(3))
+        servo.angle = None
+        rospy.loginfo("90 deg")
+
 #
     else:
         rospy.loginfo("Unidentified message")

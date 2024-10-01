@@ -1,0 +1,5 @@
+<?xml version='1.0'?>
+<launch>
+	<node name="frames" pkg="spar_node" type="tf2_frames" respawn="false" output="screen"/>
+	<node name="combined" pkg="spar_node" type="tf2_combined" respawn="false" output="screen"/>
+</launch>
