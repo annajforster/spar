@@ -68,7 +68,7 @@ class Guidance():
 		self.markers = np.full((101, 2), np.nan)
 
 		# Variables for the battery function 
-		self.batt_check = 0.1
+		self.batt_check = 0.2
 		self.battery = False
 		
 		# Printing altitude to terminal
@@ -76,7 +76,7 @@ class Guidance():
 
 		######## HARD CODED LANDING MARKER ID AND COORDINATES ##########
 		self.landing_marker = 72
-		self.markers[self.landing_marker,:] = [1.8,1.8]
+		self.markers[self.landing_marker,:] = [1.5,-1.5]
 		
 		#Create a publisher for payload commands
 		self.pub_payload = rospy.Publisher('payloadcommands', UInt8, queue_size=2)
@@ -748,15 +748,15 @@ def main(args):
              [-1.5, 2.0, surveyAltitude, 0.0],    # 5  r3
              [-1.5,-2.0, surveyAltitude, 0.0],    # 6  r3
              [-0.5,-2.0, surveyAltitude, 0.0],    # 7  r4
-             [-0.5, 2.0, surveyAltitude, 0.0],    # 8  r4
-             [ 0.5, 2.0, surveyAltitude, 0.0],    # 9  r5
-             [ 0.5,-2.0, surveyAltitude, 0.0],    # 10 r5
-             [ 1.5,-2.0, surveyAltitude, 0.0],    # 11 r6
-             [ 1.5, 2.0, surveyAltitude, 0.0],    # 12 r6
-             [ 2.5, 2.0, surveyAltitude, 0.0],    # 13 r7
-             [ 2.5,-2.0, surveyAltitude, 0.0],    # 14 r7
-             [ 3.5,-2.0, surveyAltitude, 0.0],    # 15 r8
-             [ 3.5, 2.0, surveyAltitude, 0.0]]    # 16 r8
+             [-0.5, 2.0, surveyAltitude, 0.0]]    # 8  r4
+            #  [ 0.5, 2.0, surveyAltitude, 0.0],    # 9  r5
+            #  [ 0.5,-2.0, surveyAltitude, 0.0],    # 10 r5
+            #  [ 1.5,-2.0, surveyAltitude, 0.0],    # 11 r6
+            #  [ 1.5, 2.0, surveyAltitude, 0.0],    # 12 r6
+            #  [ 2.5, 2.0, surveyAltitude, 0.0],    # 13 r7
+            #  [ 2.5,-2.0, surveyAltitude, 0.0],    # 14 r7
+            #  [ 3.5,-2.0, surveyAltitude, 0.0],    # 15 r8
+            #  [ 3.5, 2.0, surveyAltitude, 0.0]]    # 16 r8
 
 	# For 3 to 4m 
 	wpsR2 = [[ 0.0, 0.0, surveyAltitude, 0.0],	  # 0 takeoff
