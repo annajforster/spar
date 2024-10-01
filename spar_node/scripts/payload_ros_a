@@ -41,18 +41,18 @@ def callback(msg):
     #Drop Tracker:      0b00000010 (2)
 #
     if msg.data == 1:
-        servo.angle = 45
-        rospy.sleep(rospy.Duration(3))
-        servo.angle = None
-        rospy.loginfo("Epi-Pen was deployed")
-        speak("Epi-Pen was deployed")
-#    
-    elif msg.data == 2:
         servo.angle = 135
         rospy.sleep(rospy.Duration(3))
         servo.angle = None
         rospy.loginfo("Tracker was deployed")
         speak("Tracker was deployed")
+#    
+    elif msg.data == 2:
+        servo.angle = 45
+        rospy.sleep(rospy.Duration(3))
+        servo.angle = None
+        rospy.loginfo("Epi-Pen was deployed")
+        speak("Epi-Pen was deployed")
 #
     else:
         rospy.loginfo("Unidentified message")
