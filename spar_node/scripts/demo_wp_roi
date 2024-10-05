@@ -48,7 +48,7 @@ class Guidance():
 			raise ArgumentError("Invalid waypoint list input!")
 
 		# Internal counter to see what waypoint were are up to
-		self.nextWaypointIndex = 0
+		self.waypoint_counter = 0
 		self.waypoint_counter = 0
 		
 
@@ -75,8 +75,8 @@ class Guidance():
 		rospy.loginfo("Altitude is set to: {}".format(surveyAltitude))
 
 		######## HARD CODED LANDING MARKER ID AND COORDINATES ##########
-		self.landing_marker = 72
-		self.markers[self.landing_marker,:] = [1.5,-1.5]
+		self.landing_marker = 7
+		#self.markers[self.landing_marker,:] = [1.5,-1.5]
 		
 		#Create a publisher for payload commands
 		self.pub_payload = rospy.Publisher('payloadcommands', UInt8, queue_size=2)
@@ -124,11 +124,11 @@ class Guidance():
 			rospy.loginfo("Starting waypoint mission")
 
 			# Setup first waypoint segment
-			# XXX:	Another option would be to do "takeoff" and leave "nextWaypointIndex = 0" to
+			# XXX:	Another option would be to do "takeoff" and leave "waypoint_counter = 0" to
 			#		begin the mission at the first waypoint after take-off
 			rospy.loginfo("Doing first waypoint / maybe takeoff")
 			self.send_wp(self.waypoints[0])
-			self.nextWaypointIndex += 1
+			self.waypoint_counter += 1
 			# Initialisation breadcrumb waypoints
 			self.breadcrumbWPSnextIndex = 0
 			self.breadcrumbMode = False
@@ -408,10 +408,11 @@ class Guidance():
 		self.batt_per = msg_in.percentage  
         
 		if self.batt_per <= self.batt_check:
+		
 			if not self.battery: 
 				self.battery = True
-				self.land_staging = True
-				self.nextWaypointIndex = len(self.waypoints)
+				
+				self.waypoint_counter = len(self.waypoints)
 				rospy.loginfo("Battery is critical")
 				rospy.loginfo("Battery is critical")
 				rospy.loginfo("Battery is critical")
@@ -472,10 +473,10 @@ class Guidance():
 			rospy.signal_shutdown("cancelled")
 			return
 
-		# "nextWaypointIndex" represents the "next waypoint"
-		# "nextWaypointIndex - 1" represents the "current waypoint"
-		rospy.loginfo("Resuming flight plan from waypoint %i!" % (self.nextWaypointIndex - 1))
-		self.send_wp(self.waypoints[self.nextWaypointIndex - 1])
+		# "waypoint_counter" represents the "next waypoint"
+		# "waypoint_counter - 1" represents the "current waypoint"
+		rospy.loginfo("Resuming flight plan from waypoint %i!" % (self.waypoint_counter - 1))
+		self.send_wp(self.waypoints[self.waypoint_counter - 1])
 		# Unset our flag that we are performing a diversion
 		# to allow the waypoint timer to take back over
 		self.performing_roi = False
@@ -544,24 +545,24 @@ class Guidance():
 			#		(such as aborted), as there are some states
 			#		where we won't recover from, and should just exit
 			if self.spar_client.get_state() == GoalStatus.SUCCEEDED:
-				rospy.loginfo("Reached waypoint %i!" % (self.nextWaypointIndex))
+				rospy.loginfo("Reached waypoint %i!" % (self.waypoint_counter))
 
 				# XXX:	Another check could go here to finish the mission early
 				#		if "all" inspection tasks have been completed
 				#		(Add in another "if" and make the waypoint counter check
 				#		 an "elif" check instead.
 				#		 i.e. if complete; elif more wps; else wps finished)
-				if self.nextWaypointIndex < (len(self.waypoints)):
+				if self.waypoint_counter < (len(self.waypoints)):
 
 					if not self.breadcrumbMode:
 						# Set up a path request for breadcrumb
 						req = RequestPathRequest()
-						req.start.x = self.waypoints[self.nextWaypointIndex-1][0] # Get X
-						req.start.y = self.waypoints[self.nextWaypointIndex-1][1] # Get Y
-						req.start.z = self.waypoints[self.nextWaypointIndex-1][2] # Get Z
-						req.end.x = self.waypoints[self.nextWaypointIndex][0]	# Get next X
-						req.end.y = self.waypoints[self.nextWaypointIndex][1]	# Get next Y
-						req.end.z = self.waypoints[self.nextWaypointIndex][2]	# Get next Z
+						req.start.x = self.waypoints[self.waypoint_counter-1][0] # Get X
+						req.start.y = self.waypoints[self.waypoint_counter-1][1] # Get Y
+						req.start.z = self.waypoints[self.waypoint_counter-1][2] # Get Z
+						req.end.x = self.waypoints[self.waypoint_counter][0]	# Get next X
+						req.end.y = self.waypoints[self.waypoint_counter][1]	# Get next Y
+						req.end.z = self.waypoints[self.waypoint_counter][2]	# Get next Z
 
 						res = self.srvc_bc(req)
 						
@@ -572,7 +573,7 @@ class Guidance():
 						breadcrumbWPS = []
 						if len(res.path.poses) > 0:
 							# Print the path to the screen
-							rospy.loginfo("Segment {}-1 to {}:".format(self.nextWaypointIndex,self.nextWaypointIndex))
+							rospy.loginfo("Segment {}-1 to {}:".format(self.waypoint_counter,self.waypoint_counter))
 							rospy.loginfo("[%0.2f;%0.2f;%0.2f] => [%0.2f;%0.2f;%0.2f]",
 										req.start.x,req.start.y,req.start.z,
 										req.end.x,req.end.y,req.end.z)
@@ -605,18 +606,25 @@ class Guidance():
 							self.breadcrumbWPSnextIndex +=1
 						else:
 							# If we finish with the breadcrumb waypoints we increase normal waypoints
-							self.nextWaypointIndex += 1
+							
+						    
+							self.waypoint_counter += 1
+							
 							self.breadcrumbMode = False
 				
+					# rospy.loginfo("land_staging logical check: Waypoints complete: %s, self.land_staging: %s",self.waypoint_counter < (len(self.waypoints)), self.land_staging)
 				elif not (self.waypoint_counter < (len(self.waypoints))) and not self.land_staging:
+					rospy.loginfo("land_staging logical check: Waypoints complete: %s, self.land_staging: %s", not self.waypoint_counter < (len(self.waypoints)), self.land_staging)
 					# Check that all waypoints have been completed and the drone has not yet completed the landing staging operation (hovering above landing site)
 					#Initiate land_stage
 					self.land_stage()
-					print("landing at staging area")
-					
+					print("Moving to landing staging area")
+					# rospy.loginfo("landing logical check: Waypoints complete: %s, self.land_staging: %s",self.waypoint_counter < (len(self.waypoints)), self.land_staging)
+				
 				elif not (self.waypoint_counter < (len(self.waypoints))) and self.land_staging and not self.landed:
+					rospy.loginfo("landing logical check: Waypoints complete: %s, self.land_staging: %s", not self.waypoint_counter < (len(self.waypoints)), self.land_staging)
 					self.land()
-					print("staging complete")
+					print("staging complete - begining landing")
 				
 				else:
 					# Else the mission is over, shutdown and quit the node
@@ -701,11 +709,11 @@ class Guidance():
 
 	def land_stage(self):
 		
-		#Check that the Aruco landing marker has been discovered, if not set default landing coordinate 0,0
+		#Check that the Aruco landing marker has been discovered, if not set default landing coordinate -1,-1
 		if np.isnan(self.markers[self.landing_marker,0]) or np.isnan(self.markers[self.landing_marker,1]):
 			# Set the landing waypoint at x:0, y:0, z:surveryAltitude, yaw:0
-			self.landing_wp = [0,0,self.surveyAltitude, 0] 
-			rospy.loginfo("Aruco marker %i not found: using default location [0,0] for landing staging area!" % (self.landing_marker))
+			self.landing_wp = [-1,-1,self.surveyAltitude, 0] 
+			rospy.loginfo("Aruco marker %i not found: using default location [-1,-1] for landing staging area!" % (self.landing_marker))
 		
 		#Given that we have a valid coordinate stored in self.markers: Set x y based on selected landing ID
 		else:
@@ -717,14 +725,10 @@ class Guidance():
 		self.send_wp(self.landing_wp)
 
 	def land(self):
-		if self.battery: # If battery is critical, land immediately
-			self.landing_wp = [0,0,0,0]	
-		else:
-			self.landing_wp = [self.markers[self.landing_marker,0],self.markers[self.landing_marker,1],0,0]
-		if not np.isnan(self.markers[self.landing_marker,:]).any():
-			rospy.loginfo("Landing at [%i,%i]!" % (self.landing_wp[0], self.landing_wp[1]))
-		else:
-			rospy.loginfo("Landing at [0,0]!")
+		#Uses the self.landing_wp fromm the previous function but with the altitude changes to zero, for the final landing waypoint
+		rospy.loginfo("Landing at the previously defined landing waypoint with altitude of 0")
+		self.landing_wp = [self.landing_wp[0],self.landing_wp[1],0,0]
+		
 		self.landed = True
 		self.send_wp(self.landing_wp)
 		
