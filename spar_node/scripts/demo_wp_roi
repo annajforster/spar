@@ -255,8 +255,8 @@ class Guidance():
 		msg_out.scale.y = 0.2
 		msg_out.scale.z = 0.5
 
-		# Make the cylinder a blue colour
-		msg_out.color.r = (0/255)
+		# Colour
+		msg_out.color.r = (127/255)
 		msg_out.color.g = (0/255)
 		msg_out.color.b = (255/255)
 		msg_out.color.a = 1.0
@@ -280,7 +280,7 @@ class Guidance():
 		# Marker variables
 		msg_out.ns = "Target 2"             # Namespace 
 		msg_out.id = 0                      # ID of the marker
-		msg_out.type = Marker.SPHERE      # Shape choice 
+		msg_out.type = Marker.CYLINDER      # Shape choice 
 		msg_out.action = Marker.ADD         # Action is to add / create a new marker
 		msg_out.lifetime = rospy.Time(0)    # Lifetime set to Time(0) will make it last forever
 		msg_out.frame_locked = True         # Locking frame in place in RVIZ
@@ -297,12 +297,12 @@ class Guidance():
 
 		# Setting scale of marker (m)
 		msg_out.scale.x = 0.2
-		msg_out.scale.y = 0.4
+		msg_out.scale.y = 0.2
 		msg_out.scale.z = 0.2
 
-		# Make the cube a black colour
-		msg_out.color.r = (0/255)
-		msg_out.color.g = (0/255)
+		# Colour 
+		msg_out.color.r = (128/255)
+		msg_out.color.g = (255/255)
 		msg_out.color.b = (0/255)
 		msg_out.color.a = 1.0
 
@@ -357,11 +357,65 @@ class Guidance():
 
 		rospy.loginfo("[x: %0.2f; y: %0.2f]" % (location.position.x,
 						location.position.y))
+		
+	# For landing marker 	
+	def marker_land (self, data):
+		location = data.pose.pose
+
+		# # Message header variables 
+		msg_out = Marker()
+		msg_out.header.frame_id = "map"
+		msg_out.header.stamp = rospy.Time.now() 
+
+		# Marker variables
+		msg_out.ns = "Landing ArUco"        # Namespace 
+		msg_out.id = 0                      # ID of the marker
+		msg_out.type = Marker.CUBE          # Shape choice 
+		msg_out.action = Marker.ADD         # Action is to add / create a new marker
+		msg_out.lifetime = rospy.Time(0)    # Lifetime set to Time(0) will make it last forever
+		msg_out.frame_locked = True         # Locking frame in place in RVIZ
+
+		# Marker Global coordinates 
+		msg_out.pose.position.x = location.position.x
+		msg_out.pose.position.y = location.position.y
+		msg_out.pose.position.z = 0.0
+		msg_out.pose.orientation.w = 1.0
+		msg_out.pose.orientation.x = 0.0
+		msg_out.pose.orientation.y = 0.0
+		msg_out.pose.orientation.z = 0.0
+
+		# Setting scale of marker (m)
+		msg_out.scale.x = 0.2
+		msg_out.scale.y = 0.2
+		msg_out.scale.z = 0.1
+
+		# Make the square a blue colour
+		msg_out.color.r = (0/255)
+		msg_out.color.g = (0/255)
+		msg_out.color.b = (255/255)
+		msg_out.color.a = 1.0        # Full opacity
+
+		# Publishing the marker to RVIZ 
+		rospy.loginfo('Publishing Landing ArUco Marker to RVIZ')
+		self.marker_pub.publish(msg_out)
+
+		rospy.loginfo("[x: %0.2f; y: %0.2f]" % (location.position.x,
+						location.position.y))
 
 	# Function for directing marker/target global coordinates 
 	def callback_detection(self, msg_in):
 		# Extracting maker/target id from subscriber message 
 		self.id = msg_in.id
+
+		# Calling marker function to store coordinates in marker array
+		if 0 <= self.id <= 100:
+			rospy.loginfo("Saving marker coordinates into the array")
+			self.marker_vis(msg_in)		# Trigger RVIZ marker
+			self.marker_storage(msg_in)
+
+		elif self.id == self.landing_marker: 
+			rospy.loginfo("Landing marker has been located") 
+			self.maker_land(msg_in)
 
 		# Calling marker function to store coordinates in marker array
 		if 0 <= self.id <= 100:
