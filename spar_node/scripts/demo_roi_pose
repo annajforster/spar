@@ -49,7 +49,12 @@ class Guidance():
 
 		# Internal counter to see what waypoint were are up to
 		self.waypoint_counter = 0
-		self.waypoint_counter = 0
+		self.refine_id = 0
+		self.refined_status_1 = False
+		self.refined_status_2 = False
+		self.refined_status_landing = False
+		self.refined_pose = np.full((3, 4), np.nan)
+		
 		
 
 		#Aruco storage and landing logic
@@ -68,18 +73,21 @@ class Guidance():
 		self.markers = np.full((101, 2), np.nan)
 
 		# Variables for the battery function 
-		self.batt_check = 0.15
+		self.batt_check = 0.2
 		self.battery = False
 		
 		# Printing altitude to terminal
 		rospy.loginfo("Altitude is set to: {}".format(surveyAltitude))
 
 		######## HARD CODED LANDING MARKER ID AND COORDINATES ##########
-		self.landing_marker = 40
+		self.landing_marker = 72
 		#self.markers[self.landing_marker,:] = [1.5,-1.5]
 		
 		#Create a publisher for payload commands
 		self.pub_payload = rospy.Publisher('payloadcommands', UInt8, queue_size=2)
+
+		# Create a publisher to request a refined pose from the image subsystem
+		self.pub_pose_refined = rospy.Publisher('refined_pose', UInt8, queue_size=2)
 
 		# Set a flag to indicate that we are doing a specific inspection
 		# and that we are not following our waypoint list
@@ -141,7 +149,6 @@ class Guidance():
 			# from a diversion to the correct location
 			# XXX: These topics could be hard-coded to avoid using a launch file
 			self.sub_pose = rospy.Subscriber("/mavros/local_position/pose", PoseStamped, self.callback_pose)
-			#self.sub_pose = rospy.Subscriber("uavasr/pose", PoseStamped, self.callback_pose)
 			
 			# Subscriber to catch "ROI" diversion commands
 			self.sub_roi = rospy.Subscriber("/target_detection/roi", ObjectHypothesisWithPose, self.callback_detection)
@@ -184,6 +191,9 @@ class Guidance():
 		# If we haven't returned false yet, then waypoints look good!
 		return True
 
+	# def refine_pose(self):
+	# 	# This function will refine the pose of the UAV to be more accurate before payload is deployed or a maker is landed on
+		
 
 	# This function will check if a waypoint is in the format we expect
 	def check_waypoint(self, wp):
@@ -256,7 +266,7 @@ class Guidance():
 		msg_out.scale.y = 0.2
 		msg_out.scale.z = 0.5
 
-		# Colour - pink 
+		# Colour
 		msg_out.color.b = (127/255)
 		msg_out.color.g = (0/255)
 		msg_out.color.r = (255/255)
@@ -299,9 +309,9 @@ class Guidance():
 		# Setting scale of marker (m)
 		msg_out.scale.x = 0.2
 		msg_out.scale.y = 0.2
-		msg_out.scale.z = 0.5
+		msg_out.scale.z = 0.2
 
-		# Colour - green 
+		# Colour 
 		msg_out.color.b = (128/255)
 		msg_out.color.g = (255/255)
 		msg_out.color.r = (0/255)
@@ -347,9 +357,9 @@ class Guidance():
 		msg_out.scale.z = 0.1
 
 		# Make the square a white colour
-		msg_out.color.b = (255/255)
-		msg_out.color.g = (255/255)
 		msg_out.color.r = (255/255)
+		msg_out.color.g = (255/255)
+		msg_out.color.b = (255/255)
 		msg_out.color.a = 1.0
 
 		# Publishing the marker to RVIZ 
@@ -429,6 +439,11 @@ class Guidance():
 				rospy.loginfo("Triggering ROI Diversion for Target 1")
 				self.inspect_roi(msg_in)
 
+			elif not self.refined_status_1:
+				self.refined_status_1 = True
+				self.refined_pose[0,:] = [msg_in.pose.pose.position.x, msg_in.pose.pose.position.y + 0.05, 0.7, 0.0]
+
+
 		elif self.id == 102:
 			if not self.target2:
 				self.target2 = True
@@ -436,6 +451,10 @@ class Guidance():
 				self.target_two(msg_in)		# Trigger RVIZ marker
 				rospy.loginfo("Triggering ROI Diversion for Target 2")
 				self.inspect_roi(msg_in)
+
+			elif not self.refined_status_2:
+				self.refined_status_2 = True
+				self.refined_pose[1,:] = [msg_in.pose.pose.position.x, msg_in.pose.pose.position.y + 0.05, 0.7, 0.0]
 
 		
 		# Letting the operator know when an invalid id message has been sent 
@@ -491,7 +510,7 @@ class Guidance():
 
 		# Set the "diversion waypoint" (at yaw zero)
 		# dwp = [msg_in.pose.position.x, msg_in.pose.position.y, msg_in.pose.position.z, 0.0]
-		dwp = [msg_in.pose.position.x, msg_in.pose.position.y + 0.05, 0.7, 0.0] #self.current_location.z, 0.0]
+		dwp = [msg_in.pose.position.x, msg_in.pose.position.y + 0.05, self.surveyAltitude, 0.0] #self.current_location.z, 0.0]
 		# Set the "return waypoint" (at yaw zero)
 		rwp = [self.current_location.x, self.current_location.y, self.current_location.z, 0.0]
 
@@ -506,8 +525,18 @@ class Guidance():
 
 		rospy.loginfo("Reached diversion ROI!")
 		# CODE FOR HOVER AND PAYLOAD DEPLOYMENT
-
+		
+		#Build refined pose request, the payload id is used to publish a request to IMG - for further pose estimations of the target being investigates
+		self.refine_id = UInt8(self.payload_id+100)
+		self.pub_pose_refined.publish(self.refine_id.data)
+		rospy.loginfo("Waiting for Refined POSE Estimation")
 		rospy.sleep(rospy.Duration(6))
+		
+		#Check the relevent row of the refined pose list for NaNs
+		#If ther are no NaNs, a refined pose has been found
+		if not np.isnan(self.refined_pose[self.payload_id-1,:]).any():
+			rospy.loginfo("Sending refined pose location")
+			self.send_wp(self.refined_pose[self.payload_id-1,:])
 		
 		#self.payload_id = UInt8()
 		self.payload_id = UInt8(self.payload_id)
@@ -648,7 +677,10 @@ class Guidance():
 							self.breadcrumbWPSnextIndex +=1 
 
 						else:
+							
 							rospy.logerr("solution not found")
+							# Increment the counter if a solution can not be found - probably because a waypoint exists in an obstruction
+							#This will skip over a waypoint, preventing getting stuck in a loop
 							self.waypoint_counter += 1
 
 					else:
@@ -847,7 +879,7 @@ def main(args):
            
            
 # horizontal
-	wpsR1s = [[-1.0,-1.0, surveyAltitude, 0.0],	  # 0 takeoff
+	wpsR1d = [[-1.0,-1.0, surveyAltitude, 0.0],	  # 0 takeoff
 			 [-3.5,-2.0, surveyAltitude, 0.0],    # 1  r1
              [-3.5, 2.0, surveyAltitude, 0.0],    # 2  r1
              [-2.75, 2.0, surveyAltitude, 0.0],   # 3  r2
@@ -873,7 +905,7 @@ def main(args):
 
 
 	# For 3 to 4m 
-	wpsR2 = [[-1.0, -1.0, surveyAltitude, 0.0],	  # 0 takeoff
+	wpsR2 = [[ 0.0, 0.0, surveyAltitude, 0.0],	  # 0 takeoff
 			 [-3.0, 2.0, surveyAltitude, 0.0],    # 1  r1
              [-3.0,-2.0, surveyAltitude, 0.0],    # 2  r1
              [-1.0,-2.0, surveyAltitude, 0.0],    # 3  r2
@@ -907,6 +939,3 @@ if __name__ == '__main__':
 		pass
 
 	print('Node Closed')
-
-
-

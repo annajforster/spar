@@ -171,6 +171,7 @@ target_link_libraries(${PROJECT_NAME}
 catkin_install_python(PROGRAMS
   scripts/demo_breadcrumb
   scripts/demo_roi
+  scripts/demo_roi_pose
   scripts/demo_roi_only
   scripts/demo_wp
   scripts/demo_wp_roi

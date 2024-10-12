@@ -32,6 +32,7 @@ servo = AngularServo(servo_pin, min_angle=0, max_angle=180, min_pulse_width=0.00
 #         speak_pub.publish(text)  # Publish the text to the ROS topic
 
 # #
+servo.angle = None
 #
 def callback(msg):
     rospy.loginfo("Message received")
